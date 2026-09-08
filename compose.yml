@@ -1,0 +1,88 @@
+services:
+  api:
+    build:
+      context: ./
+      dockerfile: api.Dockerfile
+    environment:
+      MONGO_URI: mongodb://mongodb:27017
+      MONGO_DB: intelligence_scanner
+    env_file:
+      - .env
+    ports:
+      - "8000:8000"
+    depends_on:
+      - mongodb
+    volumes:
+      - ./src:/app/src
+
+  scheduler:
+    restart: unless-stopped
+    build:
+      context: ./
+      dockerfile: scheduler.Dockerfile
+    environment:
+      MONGO_URI: mongodb://mongodb:27017
+      RABBITMQ_URL: amqp://guest:guest@rabbitmq:5672/
+    env_file:
+      - .env
+    depends_on:
+      mongodb:
+        condition: service_healthy
+        restart: true
+      rabbitmq:
+        condition: service_healthy
+        restart: true
+    volumes:
+      - ./src:/app/src
+
+  scanner-worker:
+    restart: unless-stopped
+    build:
+      context: ./
+      dockerfile: worker.Dockerfile
+    environment:
+      MONGO_URI: mongodb://mongodb:27017
+      RABBITMQ_URL: amqp://guest:guest@rabbitmq:5672/
+      SCAN_QUEUE_NAME: npm.scan.jobs
+      WORKER_PREFETCH_COUNT: 4
+      WORKER_HTTP_TIMEOUT_SECONDS: 30.0
+      SCANNER_MAX_TARBALL_BYTES: 52428800
+      SCANNER_MAX_FILES: 5000
+      SCANNER_MAX_FILE_READ_BYTES: 1048576
+    env_file:
+      - .env
+    depends_on:
+      mongodb:
+        condition: service_healthy
+        restart: true
+      rabbitmq:
+        condition: service_healthy
+        restart: true
+    volumes:
+      - ./src:/app/src
+
+  mongodb:
+    image: mongo:7
+    healthcheck:
+      test: [ "CMD-SHELL", "mongosh --eval 'db.runCommand({ping:1})' --quiet" ]
+      interval: 10s
+      timeout: 5s
+      retries: 3
+    ports:
+      - "27017:27017"
+    volumes:
+      - mongo-data:/data/db
+
+  rabbitmq:
+    image: rabbitmq:3-management
+    healthcheck:
+      test: [ "CMD-SHELL", "rabbitmq-diagnostics ping" ]
+      interval: 10s
+      timeout: 5s
+      retries: 3
+    ports:
+      - "5672:5672"
+      - "15672:15672"
+
+volumes:
+  mongo-data:

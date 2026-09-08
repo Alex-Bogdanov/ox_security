@@ -1,0 +1,33 @@
+[project]
+name = "ox-security"
+version = "0.1.0"
+description = "Malicious packages intelligence scanner"
+authors = [
+  { name = "Oleksii Bogdanov", email = "heavy.lexer@gmail.com" }
+]
+readme = "README.md"
+requires-python = ">=3.12,<3.13"
+dependencies = [
+    "pydantic==2.13.4",
+    "pydantic-settings==2.14.1",
+    "httpx==0.28.1",
+    "motor==3.7.1",
+    "pymongo==4.17.0",
+]
+
+[project.optional-dependencies]
+scheduler = [
+    "aio-pika==9.6.2",
+    "orjson==3.11.9",
+]
+
+scanner-worker = [
+    "aio-pika==9.6.2",
+    "orjson==3.11.9",
+]
+
+api = [
+    "fastapi==0.136.1",
+    "uvicorn[standard]==0.47.0",
+    "starlette>=1.0.0",
+]
