@@ -6,7 +6,7 @@ authors = [
   { name = "Oleksii Bogdanov", email = "heavy.lexer@gmail.com" }
 ]
 readme = "README.md"
-requires-python = ">=3.12,<3.13"
+requires-python = ">=3.13,<3.14"
 dependencies = [
     "pydantic==2.13.4",
     "pydantic-settings==2.14.1",
